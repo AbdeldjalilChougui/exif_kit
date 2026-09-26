@@ -106,7 +106,17 @@ final thumb = JpegExifReader.thumbnail(jpegBytes);
 - The pure-Dart reader handles JPEG only and a core tag set (IFD0, Exif, GPS, IFD1 thumbnail).
   It does not parse maker notes, XMP or IPTC.
 - On Android 10+ GPS tags in media URIs are redacted unless the app holds
-  `ACCESS_MEDIA_LOCATION` and passes `requireOriginal: true`.
+  `ACCESS_MEDIA_LOCATION` and passes `requireOriginal: true`. Redacted GPS arrives as zeros
+  with empty reference tags; `latitude`, `longitude` and `hasGps` treat that as no GPS, but the
+  raw zero strings stay in `tags`.
+- The example app has an emulator integration test (`example/integration_test/`, run with
+  `dart run tool/run_on_device.dart <applicationId>` from `example/`). It writes and re-reads
+  GPS, orientation and dates, strips them, checks the result against the pure-Dart reader, and
+  reads the image back through a MediaStore `content://` URI with and without the media
+  permissions.
+
+**Tested on:** Android Emulator, Pixel 10 system image (`sdk_gphone16k_x86_64`), API 37. Not yet
+tested on a physical phone or with HEIF/DNG camera files.
 
 ## Data sources
 
