@@ -191,4 +191,39 @@ class ExifMappingTest {
         assertEquals("IO_ERROR", ExifMapping.errorCode(IOException("disk")))
         assertEquals("NATIVE_ERROR", ExifMapping.errorCode(IllegalStateException("?")))
     }
+
+    // Regressions found on an API 37 emulator -------------------------------
+
+    @Test
+    fun readPermissionFailuresMapToAccessDenied() {
+        // No READ_MEDIA_IMAGES for another app's MediaStore row.
+        assertEquals("ACCESS_DENIED", ExifMapping.readErrorCode(SecurityException("Permission Denial: reading")))
+        // MediaStore.setRequireOriginal without ACCESS_MEDIA_LOCATION: MediaProvider throws this.
+        assertEquals(
+            "ACCESS_DENIED",
+            ExifMapping.readErrorCode(
+                UnsupportedOperationException("Caller must hold ACCESS_MEDIA_LOCATION permission to access original"),
+            ),
+        )
+        assertEquals("ACCESS_DENIED", ExifMapping.readErrorCode(FileNotFoundException("/x: open failed: EACCES (Permission denied)")))
+        // Everything else keeps the shared mapping.
+        assertEquals("UNSUPPORTED_FORMAT", ExifMapping.readErrorCode(UnsupportedOperationException("not an image")))
+        assertEquals("FILE_NOT_FOUND", ExifMapping.readErrorCode(FileNotFoundException("/x: open failed: ENOENT")))
+        assertEquals("IO_ERROR", ExifMapping.readErrorCode(IOException("disk")))
+    }
+
+    @Test
+    fun readingAnUnknownFormatIsRefused() {
+        assertFailsWith<UnsupportedOperationException> { ExifMapping.requireReadable(ImageFormat.UNKNOWN) }
+        for (f in ImageFormat.values().filter { it != ImageFormat.UNKNOWN }) ExifMapping.requireReadable(f)
+    }
+
+    @Test
+    fun dropsExifInterfaceCompatibilityDefaults() {
+        // ExifInterface fills ImageWidth, ImageLength and Orientation with "0" when they are absent.
+        val tags = mutableMapOf("ImageWidth" to "0", "ImageLength" to "0", "Orientation" to "0", "Make" to "Canon")
+        assertEquals(mapOf("Make" to "Canon"), ExifMapping.withoutCompatibilityDefaults(tags))
+        val real = mapOf("ImageWidth" to "64", "ImageLength" to "48", "Orientation" to "6")
+        assertEquals(real, ExifMapping.withoutCompatibilityDefaults(real))
+    }
 }

@@ -229,6 +229,38 @@ object ExifMapping {
         return needles.any { m.contains(it, ignoreCase = true) }
     }
 
+    /**
+     * Maps an exception thrown while *reading* to a Dart error code. Missing read access
+     * (a SecurityException, EACCES, or MediaProvider's UnsupportedOperationException for
+     * `setRequireOriginal` without ACCESS_MEDIA_LOCATION) becomes `ACCESS_DENIED`.
+     */
+    fun readErrorCode(e: Throwable): String = when {
+        e is SecurityException -> "ACCESS_DENIED"
+        e is UnsupportedOperationException && e.says("ACCESS_MEDIA_LOCATION") -> "ACCESS_DENIED"
+        e is IOException && e.says("EACCES", "EPERM", "Permission denied") -> "ACCESS_DENIED"
+        else -> errorCode(e)
+    }
+
+    /** Throws when [format] is not an image ExifInterface can parse. */
+    fun requireReadable(format: ImageFormat) {
+        if (format == ImageFormat.UNKNOWN) {
+            throw UnsupportedOperationException("Not a JPEG, PNG, WebP, HEIF or DNG image")
+        }
+    }
+
+    /**
+     * ExifInterface reports ImageWidth, ImageLength and Orientation as "0" when the file has
+     * none ("compatibility defaults"). Those are not data, so they are dropped.
+     */
+    fun withoutCompatibilityDefaults(tags: Map<String, String>): Map<String, String> =
+        tags.filterNot { (tag, value) -> tag in COMPATIBILITY_DEFAULTS && value.trim() == "0" }
+
+    private val COMPATIBILITY_DEFAULTS = setOf(
+        ExifInterface.TAG_IMAGE_WIDTH,
+        ExifInterface.TAG_IMAGE_LENGTH,
+        ExifInterface.TAG_ORIENTATION,
+    )
+
     /** Maps an exception to the error code the Dart side understands. */
     fun errorCode(e: Throwable): String = when {
         e is SecurityException -> "PERMISSION_DENIED"

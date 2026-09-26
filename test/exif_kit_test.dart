@@ -66,6 +66,10 @@ void main() {
         'FILE_NOT_FOUND': isA<ExifFileNotFoundException>(),
         'UNSUPPORTED_FORMAT': isA<ExifUnsupportedFormatException>(),
         'PERMISSION_DENIED': isA<ExifWriteNotAllowedException>(),
+        // Regression (API 37 emulator): a read refused for lack of
+        // READ_MEDIA_IMAGES or ACCESS_MEDIA_LOCATION used to surface as a
+        // write or format error.
+        'ACCESS_DENIED': isA<ExifAccessDeniedException>(),
         'INVALID_ARGUMENT': isA<ExifInvalidArgumentException>(),
         'IO_ERROR': isA<ExifIoException>(),
         'SOMETHING': isA<ExifPlatformException>(),
@@ -223,6 +227,7 @@ void main() {
       ExifFileNotFoundException() => 'nf',
       ExifUnsupportedFormatException() => 'fmt',
       ExifWriteNotAllowedException() => 'deny',
+      ExifAccessDeniedException() => 'read-deny',
       ExifInvalidArgumentException() => 'arg',
       ExifFormatException() => 'bad',
       ExifIoException() => 'io',

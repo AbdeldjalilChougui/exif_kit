@@ -57,7 +57,7 @@ class ExifKitPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 val value = task()
                 mainHandler.post { result.success(value) }
             } catch (e: Throwable) {
-                val code = ExifMapping.errorCode(e)
+                val code = if (call.method == "write") ExifMapping.errorCode(e) else ExifMapping.readErrorCode(e)
                 mainHandler.post { result.error(code, e.message ?: e.toString(), null) }
             }
         }
@@ -109,6 +109,7 @@ class ExifKitPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             throw FileNotFoundException("No such file: $source")
         }
         val format = detect(source, requireOriginal)
+        ExifMapping.requireReadable(format)
         return if (ExifMapping.isContentUri(source)) {
             val pfd = context.contentResolver.openFileDescriptor(contentUri(source, requireOriginal), "r")
                 ?: throw FileNotFoundException("Cannot open $source")
@@ -122,7 +123,7 @@ class ExifKitPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         withExif(source, requireOriginal) { exif, format ->
             val tags = HashMap<String, String>()
             for (tag in ExifTags.READ) exif.getAttribute(tag)?.let { tags[tag] = it }
-            mapOf("tags" to tags, "format" to format.wire, "hasThumbnail" to exif.hasThumbnail())
+            mapOf("tags" to ExifMapping.withoutCompatibilityDefaults(tags), "format" to format.wire, "hasThumbnail" to exif.hasThumbnail())
         }
 
     private fun write(path: String?, changes: Map<String, Any?>?): Any? {

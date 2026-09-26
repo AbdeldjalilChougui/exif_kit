@@ -25,8 +25,8 @@ elsewhere (JPEG files only, no writing).
 - `JpegExifReader` / `ExifKit.readFile` / `ExifKit.readBytes`: a dependency-free Dart reader for
   JPEG (IFD0, Exif, GPS and the IFD1 thumbnail, little- and big-endian) that produces the same
   tag strings as ExifInterface. Works in unit tests and on any platform with `dart:io`.
-- Sealed, typed errors (`ExifFileNotFoundException`, `ExifWriteNotAllowedException`,
-  `ExifUnsupportedFormatException`, ...).
+- Sealed, typed errors (`ExifFileNotFoundException`, `ExifAccessDeniedException`,
+  `ExifWriteNotAllowedException`, `ExifUnsupportedFormatException`, ...).
 
 ## Install
 
@@ -71,6 +71,11 @@ final exif = await ExifKit.read(
   requireOriginal: true, // needs ACCESS_MEDIA_LOCATION on Android 10+
 );
 ```
+
+Reading another app's image needs `READ_MEDIA_IMAGES` (API 33+, `READ_EXTERNAL_STORAGE`
+before). Without it, and for `requireOriginal: true` without `ACCESS_MEDIA_LOCATION`, `read`
+throws `ExifAccessDeniedException`. Files that are not JPEG, PNG, WebP, HEIF or DNG throw
+`ExifUnsupportedFormatException`.
 
 ### Writing needs a writable file path
 

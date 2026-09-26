@@ -34,6 +34,14 @@ final class ExifWriteNotAllowedException extends ExifKitException {
   const ExifWriteNotAllowedException(super.message, {super.code});
 }
 
+/// Reading was refused: the app lacks permission to read the source, for
+/// example `READ_MEDIA_IMAGES` for another app's MediaStore image, or
+/// `ACCESS_MEDIA_LOCATION` when `requireOriginal` is true.
+final class ExifAccessDeniedException extends ExifKitException {
+  /// Creates the exception.
+  const ExifAccessDeniedException(super.message, {super.code});
+}
+
 /// An argument was invalid (empty path, relative path, out-of-range value).
 final class ExifInvalidArgumentException extends ExifKitException {
   /// Creates the exception.

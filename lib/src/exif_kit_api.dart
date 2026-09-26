@@ -194,6 +194,7 @@ abstract final class ExifKit {
           ExifUnsupportedFormatException(message, code: e.code),
         'PERMISSION_DENIED' =>
           ExifWriteNotAllowedException(message, code: e.code),
+        'ACCESS_DENIED' => ExifAccessDeniedException(message, code: e.code),
         'INVALID_ARGUMENT' =>
           ExifInvalidArgumentException(message, code: e.code),
         'IO_ERROR' => ExifIoException(message, code: e.code),
