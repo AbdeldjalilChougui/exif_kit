@@ -79,6 +79,10 @@ class ExifData {
   DateTime? get dateTime => _date(ExifTag.dateTime, null);
 
   /// Latitude in decimal degrees, negative in the southern hemisphere.
+  ///
+  /// Null when absent, or when redacted by Android (all zeros with no
+  /// reference tag), as happens for MediaStore images read without
+  /// `ACCESS_MEDIA_LOCATION`.
   double? get latitude =>
       _coordinate(ExifTag.gpsLatitude, ExifTag.gpsLatitudeRef, 'S', 90);
 
@@ -158,7 +162,11 @@ class ExifData {
     if (dms == null || dms.length < 3) return null;
     final value = dms[0] + dms[1] / 60 + dms[2] / 3600;
     if (value > limit) return null;
-    return _text(refTag)?.toUpperCase() == negative ? -value : value;
+    final ref = _text(refTag)?.toUpperCase();
+    // Android redacts GPS in media read without ACCESS_MEDIA_LOCATION by
+    // zeroing the values and the refs; that is not a fix at 0, 0.
+    if (value == 0 && ref == null) return null;
+    return ref == negative ? -value : value;
   }
 
   static final _datePattern =

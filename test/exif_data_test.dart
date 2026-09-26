@@ -46,6 +46,34 @@ void main() {
       expect(d.hasGps, isTrue);
     });
 
+    // Regression (API 37 emulator): a MediaStore image read without
+    // ACCESS_MEDIA_LOCATION comes back with GPS zeroed and empty refs, which
+    // used to read as a real fix at 0, 0.
+    test('redacted GPS (zeros, empty refs) is no GPS', () {
+      final d = ExifData(tags: const {
+        'GPSLatitude': '0/1,0/1,0/1',
+        'GPSLatitudeRef': '',
+        'GPSLongitude': '0/1,0/1,0/1',
+        'GPSLongitudeRef': '',
+        'GPSAltitude': '0/1',
+      });
+      expect(d.latitude, isNull);
+      expect(d.longitude, isNull);
+      expect(d.hasGps, isFalse);
+    });
+
+    test('a real zero coordinate with its ref is kept', () {
+      final d = ExifData(tags: const {
+        'GPSLatitude': '0/1,0/1,0/1',
+        'GPSLatitudeRef': 'N',
+        'GPSLongitude': '0/1,0/1,0/1',
+        'GPSLongitudeRef': 'E',
+      });
+      expect(d.latitude, 0);
+      expect(d.longitude, 0);
+      expect(d.hasGps, isTrue);
+    });
+
     test('GPS with too few components is ignored', () {
       final d = ExifData(tags: const {'GPSLatitude': '10/1,5/1'});
       expect(d.latitude, isNull);
