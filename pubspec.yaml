@@ -2,8 +2,8 @@ name: exif_kit
 description: Read and write EXIF (GPS, orientation, dates, camera settings) on Android via androidx ExifInterface, with a pure-Dart JPEG reader fallback.
 version: 0.1.0
 homepage: https://abdeldjalilchougui.biz/
-repository: https://github.com/AbeldjalilChougui/exif_kit
-issue_tracker: https://github.com/AbeldjalilChougui/exif_kit/issues
+repository: https://github.com/AbdeldjalilChougui/exif_kit
+issue_tracker: https://github.com/AbdeldjalilChougui/exif_kit/issues
 topics:
   - exif
   - image
